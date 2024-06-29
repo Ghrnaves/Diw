@@ -1,0 +1,270 @@
+//Diw_Trabalho_Final
+#include <iostream>
+#include <vector>
+#include <algorithm>
+#include "dados.h"
+
+// FunÃ§Ã£o para exibir estadias de um cliente
+void exibirEstadiasCliente(const std::vector<Estadia>& estadias, const std::string& cpfCliente) {
+    bool encontrouEstadias = false;
+
+    for (const auto& estadia : estadias) {
+        if (estadia.codigoCliente == cpfCliente) {
+            encontrouEstadias = true;
+            std::cout << "CPF do Cliente: " << estadia.codigoCliente << std::endl;
+            std::cout << "Quantidade de Hospedes: " << estadia.quantidadeHospedes << std::endl;
+            std::cout << "Data de Entrada: " << estadia.dataEntrada << std::endl;
+            std::cout << "Data de Saida: " << estadia.dataSaida << std::endl;
+            std::cout << "Quantidade de Diarias: " << estadia.quantidadeDiarias << std::endl;
+            std::cout << "Numero do Quarto: " << estadia.numeroQuarto << std::endl << std::endl;
+        }
+    }
+
+    if (!encontrouEstadias) {
+        std::cout << "Nenhuma estadia encontrada para o cliente com CPF " << cpfCliente << std::endl;
+    }
+}
+
+// FunÃ§Ã£o para cadastrar um novo cliente
+void cadastrarCliente(std::vector<Cliente>& clientes) {
+    Cliente cliente;
+    std::cout << "CPF: ";
+    std::cin >> cliente.cpf;
+    std::cout << "Nome: ";
+    std::cin.ignore();
+    std::getline(std::cin, cliente.nome);
+    std::cout << "Endereco: ";
+    std::getline(std::cin, cliente.endereco);
+    std::cout << "Telefone: ";
+    std::getline(std::cin, cliente.telefone);
+    clientes.push_back(cliente);
+    salvarDados(clientes, "clientes.txt");
+    std::cout << "Cliente cadastrado com sucesso!!";
+}
+
+// FunÃ§Ã£o para exibir todos os clientes cadastrados
+void exibirClientes(const std::vector<Cliente>& clientes) {
+    for (const auto& cliente : clientes) {
+        std::cout << "CPF: " << cliente.cpf << std::endl;
+        std::cout << "Nome: " << cliente.nome << std::endl;
+        std::cout << "Endereco: " << cliente.endereco << std::endl;
+        std::cout << "Telefone: " << cliente.telefone << std::endl << std::endl;
+    }
+}
+
+// FunÃ§Ã£o para cadastrar um novo funcionÃ¡rio
+void cadastrarFuncionario(std::vector<Funcionario>& funcionarios) {
+    Funcionario funcionario;
+    std::cout << "CPF: ";
+    std::cin >> funcionario.cpf;
+    std::cout << "Nome: ";
+    std::cin.ignore();
+    std::getline(std::cin, funcionario.nome);
+    std::cout << "Telefone: ";
+    std::getline(std::cin, funcionario.telefone);
+    std::cout << "Cargo: ";
+    std::getline(std::cin, funcionario.cargo);
+    std::cout << "Salario: ";
+    std::cin >> funcionario.salario;
+    funcionarios.push_back(funcionario);
+    salvarDados(funcionarios, "funcionarios.txt");
+    std::cout <<"Funcionario cadastrado com sucesso!!" << std::endl;
+}
+
+// FunÃ§Ã£o para exibir todos os funcionÃ¡rios cadastrados
+void exibirFuncionarios(const std::vector<Funcionario>& funcionarios) {
+    for (const auto& funcionario : funcionarios) {
+        std::cout << "CPF: " << funcionario.cpf << std::endl;
+        std::cout << "Nome: " << funcionario.nome << std::endl;
+        std::cout << "Telefone: " << funcionario.telefone << std::endl;
+        std::cout << "Cargo: " << funcionario.cargo << std::endl;
+        std::cout << "Salario: " << funcionario.salario << std::endl << std::endl;
+    }
+}
+
+// FunÃ§Ã£o para cadastrar uma nova estadia
+void cadastrarEstadia(std::vector<Estadia>& estadias, const std::vector<Cliente>& clientes, std::vector<Quarto>& quartos) {
+    Estadia estadia;
+    std::cout << "CPF do Cliente: ";
+    std::cin >> estadia.codigoCliente;
+
+    // Verificar se o CPF do cliente existe
+    bool clienteExiste = false;
+    for (const auto& cliente : clientes) {
+        if (cliente.cpf == estadia.codigoCliente) {
+            clienteExiste = true;
+            break;
+        }
+    }
+
+    if (!clienteExiste) {
+        std::cout << "Cliente com CPF " << estadia.codigoCliente << " nao encontrado." << std::endl;
+        return;
+    }
+
+    std::cout << "Quantidade de Hospedes: ";
+    std::cin >> estadia.quantidadeHospedes;
+    std::cout << "Data de Entrada (DD/MM/AAAA): ";
+    std::cin.ignore();
+    std::getline(std::cin, estadia.dataEntrada);
+    std::cout << "Data de Saida (DD/MM/AAAA): ";
+    std::getline(std::cin, estadia.dataSaida);
+    std::cout << "Quantidade de Diarias: ";
+    std::cin >> estadia.quantidadeDiarias;
+    std::cout << "Numero do Quarto: ";
+    std::cin >> estadia.numeroQuarto;
+
+    // Verificar se o quarto estÃ¡ disponÃ­vel e se a quantidade de hÃ³spedes nÃ£o excede o limite
+    for (auto& quarto : quartos) {
+        if (quarto.numeroIdentificacao == estadia.numeroQuarto) {
+            if (!quarto.disponibilidade) {
+                std::cout << "O quarto " << quarto.numeroIdentificacao << " jÃ¡ estÃ¡ ocupado." << std::endl;
+                return;
+            } else if (estadia.quantidadeHospedes > quarto.limitePessoas) {
+                std::cout << "A quantidade de hÃ³spedes excede o limite permitido para o quarto " << quarto.numeroIdentificacao << "." << std::endl;
+                return;
+            } else {
+                quarto.disponibilidade = false;
+                break;
+            }
+        }
+    }
+
+    estadias.push_back(estadia);
+    salvarDados(estadias, "estadias.txt");
+    salvarDados(quartos, "quartos.txt");
+    std::cout << "Estadia cadastrada com sucesso!";
+}
+
+// FunÃ§Ã£o para finalizar a estadia do cliente
+void baixarEstadia(std::vector<Estadia>& estadias, std::vector<Quarto>& quartos, const std::string& codigoCliente) {
+    const double precoPorDiaria = 100.0; // Valor fixo por diÃ¡ria
+    auto it = std::find_if(estadias.begin(), estadias.end(),
+                           [&codigoCliente](const Estadia& estadia) {
+                               return estadia.codigoCliente == codigoCliente;
+                           });
+
+    if (it != estadias.end()) {
+        double valorTotal = it->quantidadeDiarias * precoPorDiaria;
+        std::cout << "Estadia finalizada. Valor total a ser pago: R$ " << valorTotal << std::endl;
+
+        // Liberar o quarto ocupado
+        for (auto& quarto : quartos) {
+            if (quarto.numeroIdentificacao == it->numeroQuarto) {
+                quarto.disponibilidade = true;
+                break;
+            }
+        }
+
+        estadias.erase(it);
+        salvarDados(estadias, "estadias.txt");
+        salvarDados(quartos, "quartos.txt");
+    } else {
+        std::cout << "Nenhuma estadia encontrada para o cliente com CPF " << codigoCliente << std::endl;
+    }
+}
+
+// FunÃ§Ã£o para cadastrar um novo quarto
+void cadastrarQuarto(std::vector<Quarto>& quartos) {
+    Quarto quarto;
+    std::cout << "Numero de Identificacao do Quarto: ";
+    std::cin >> quarto.numeroIdentificacao;
+    std::cout << "Limite de Pessoas: ";
+    std::cin >> quarto.limitePessoas;
+    std::cout << "Valor da Diaria: ";
+    std::cin >> quarto.valorDiaria;
+    quarto.disponibilidade = true; // Inicialmente, todos os quartos estÃ£o disponÃ­veis
+    quartos.push_back(quarto);
+    salvarDados(quartos, "quartos.txt");
+    std::cout << "Quarto cadastrado com sucesso!";
+}
+
+// FunÃ§Ã£o para identificar se o quarto estÃ¡ lotado
+void lotacaoMaxima(const std::vector<Quarto>& quartos, const std::vector<Cliente>& clientes, const std::vector<Estadia>& estadias) {
+    for (const auto& cliente : clientes) {
+        for (const auto& estadia : estadias) {
+            if (cliente.cpf == estadia.codigoCliente) {
+                for (const auto& quarto : quartos) {
+                    if (quarto.numeroIdentificacao == estadia.numeroQuarto) {
+                        if (quarto.limitePessoas == estadia.quantidadeHospedes) {
+                            std::cout << "O limite de pessoas no quarto " << quarto.numeroIdentificacao << " foi atingido" << std::endl;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// FunÃ§Ã£o principal
+int main() {
+    std::vector<Cliente> clientes;
+    std::vector<Funcionario> funcionarios;
+    std::vector<Estadia> estadias;
+    std::vector<Quarto> quartos;
+
+    // Carregar dados existentes
+    carregarDados(clientes, "clientes.txt");
+    carregarDados(funcionarios, "funcionarios.txt");
+    carregarDados(estadias, "estadias.txt");
+    carregarDados(quartos, "quartos.txt");
+
+    int opcao;
+    do {
+        std::cout << "=== Menu ===" << std::endl;
+        std::cout << "1. Cadastrar Cliente" << std::endl;
+        std::cout << "2. Pesquisar Cliente" << std::endl;
+        std::cout << "3. Exibir Estadias do Cliente" << std::endl;
+        std::cout << "4. Cadastrar Funcionario" << std::endl;
+        std::cout << "5. Pesquisar Funcionario" << std::endl;
+        std::cout << "6. Cadastrar Estadia" << std::endl;
+        std::cout << "7. Baixar Estadia" << std::endl;
+        std::cout << "8. Cadastrar Quarto" << std::endl;
+        std::cout << "9. Sair" << std::endl;
+        std::cout << "Escolha uma opcao: ";
+        std::cin >> opcao;
+
+        switch (opcao) {
+            case 1:
+                cadastrarCliente(clientes);
+                break;
+            case 2:
+                exibirClientes(clientes);
+                break;
+            case 3: {
+                std::string cpfCliente;
+                std::cout << "CPF do Cliente: ";
+                std::cin >> cpfCliente;
+                exibirEstadiasCliente(estadias, cpfCliente);
+                break;
+            }
+            case 4:
+                cadastrarFuncionario(funcionarios);
+                break;
+            case 5:
+                exibirFuncionarios(funcionarios);
+                break;
+            case 6:
+                cadastrarEstadia(estadias, clientes, quartos);
+                break;
+            case 7: {
+                std::string codigoCliente;
+                std::cout << "CPF do Cliente: ";
+                std::cin >> codigoCliente;
+                baixarEstadia(estadias, quartos, codigoCliente);
+                break;
+            }
+            case 8:
+                cadastrarQuarto(quartos);
+                break;
+            case 9:
+                std::cout << "Saindo do programa..." << std::endl;
+                break;
+            default:
+                std::cout << "Opcao invalida! Tente novamente.";
+                break;
+        }
+    } while (opcao != 9);
+
+    return 0;
+}
